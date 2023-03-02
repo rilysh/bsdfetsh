@@ -12,7 +12,6 @@ main() {
 	arch=$(uname -m)
 	shell=$(ps -p $$ -ocomm=)
 	user=$(id -un)
-	boot_time=
 	case $os in
 		Free*|Midnight*|Dragon*)
 			boot_time=$(sysctl -n kern.boottime | sed -E 's/.* sec = ([[:digit:]]+).*/\1/')
@@ -21,6 +20,7 @@ main() {
 			boot_time=$(sysctl -n kern.boottime)
 		;;
 		*)
+			boot_time=0
 		;;
 	esac
 	now_time=$(date +%s)
@@ -29,8 +29,6 @@ main() {
 	hours="$((sec / 60 / 60 % 24))h"
 	minutes="$((sec / 60 % 60))m"
 	uptime="$days $hours $minutes"
-	pkgs=
-	ctl_mem=
 	case $os in
 		Free*|DragonFly*)
 			pkgs=$(pkg info -q | wc -l | sed "s/[[:space:]]//g")
@@ -41,6 +39,9 @@ main() {
 		Open*|Net*)
 			pkgs=$(pkg_info | wc -l | sed "s/[[:space:]]//g")
 		;;
+		*)
+			pkgs=0 # We aren't quite sure what BSD system is that
+		;;
 	esac
 	case $os in
 		Free*|Midnight*)
@@ -48,6 +49,9 @@ main() {
 		;;
 		Open*|DragonFly*|Net*)
 			ctl_mem=$(sysctl -n hw.physmem)
+		;;
+		*)
+			ctl_mem=0
 		;;
 	esac
 	mem=$((ctl_mem / 1048576))
