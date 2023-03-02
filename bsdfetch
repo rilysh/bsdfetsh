@@ -1,0 +1,76 @@
+#!/usr/bin/env sh
+
+LC_ALL=C
+LANG=C
+
+main() {
+	os=$(uname -s)
+	release=$(uname -r)
+	version="$os $release"
+	# In FreeBSD you can also use /etc/rc.conf'
+	host=$(uname -n)
+	arch=$(uname -m)
+	shell=$(ps -p $$ -ocomm=)
+	user=$(id -un)
+	boot_time=
+	case $os in
+		Free*|Midnight*|Dragon*)
+			boot_time=$(sysctl -n kern.boottime | sed -E 's/.* sec = ([[:digit:]]+).*/\1/')
+		;;
+		Open*|Net*)
+			boot_time=$(sysctl -n kern.boottime)
+		;;
+		*)
+		;;
+	esac
+	now_time=$(date +%s)
+	sec=$((now_time - boot_time))
+	days="$((sec / 60 / 60 / 24))d"
+	hours="$((sec / 60 / 60 % 24))h"
+	minutes="$((sec / 60 % 60))m"
+	uptime="$days $hours $minutes"
+	pkgs=
+	ctl_mem=
+	case $os in
+		Free*|DragonFly*)
+			pkgs=$(pkg info -q | wc -l | sed "s/[[:space:]]//g")
+		;;
+		Midnight*)
+			pkgs=$(mport list | wc -l | sed "s/[[:space:]]//g")
+		;;
+		Open*|Net*)
+			pkgs=$(pkg_info | wc -l | sed "s/[[:space:]]//g")
+		;;
+	esac
+	case $os in
+		Free*|Midnight*)
+			ctl_mem=$(sysctl -n hw.realmem)
+		;;
+		Open*|DragonFly*|Net*)
+			ctl_mem=$(sysctl -n hw.physmem)
+		;;
+	esac
+	mem=$((ctl_mem / 1048576))
+	loadavg=$(uptime | cut -d 'l' -f2 | sed -E "s/oad average|:|s://g;s/ //")
+	# You can also use grep boot log in FreeBSD.
+	cpu=$(sysctl -n hw.model)
+	cores=$(sysctl -n hw.ncpu)
+	red="\033[0;91m"
+	reset="\033[0m"
+	printf "${red}OS${reset} : $os
+${red}Release${reset}: $release
+${red}Version${reset}: $version
+${red}Host${reset}: $host
+${red}Arch${reset}: $arch
+${red}Shell${reset}: $shell
+${red}User${reset}: $user
+${red}Packages${reset}: $pkgs
+${red}Uptime${reset}: $uptime
+${red}RAM${reset}: $mem
+${red}Loadavg${reset}: $loadavg
+${red}CPU${reset}: $cpu
+${red}Cores${reset}: $cores
+"
+}
+
+main
