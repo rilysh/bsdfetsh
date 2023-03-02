@@ -7,7 +7,7 @@ main() {
 	os=$(uname -s)
 	release=$(uname -r)
 	version="$os $release"
-	# In FreeBSD you can also use /etc/rc.conf'
+	# On FreeBSD you can also use /etc/rc.conf'
 	host=$(uname -n)
 	arch=$(uname -m)
 	shell=$(ps -p $$ -ocomm=)
@@ -57,7 +57,7 @@ main() {
 	cores=$(sysctl -n hw.ncpu)
 	red="\033[0;91m"
 	reset="\033[0m"
-	printf "${red}OS${reset} : $os
+	echo -n "${red}OS${reset} : $os
 ${red}Release${reset}: $release
 ${red}Version${reset}: $version
 ${red}Host${reset}: $host
